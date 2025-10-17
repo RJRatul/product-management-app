@@ -32,9 +32,9 @@ export default function ProductsPage() {
     fetchProducts()
   }, [offset, search])
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (slug: string) => {
     try {
-      await apiService.deleteProduct(id)
+      await apiService.deleteProduct(slug)
       // Refresh the products list
       fetchProducts()
     } catch (err) {

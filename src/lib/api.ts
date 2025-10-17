@@ -74,33 +74,26 @@ class ApiService {
     return this.request(`/products?${queryParams}`)
   }
 
-  async getProduct(id: string): Promise<Product> {
-    return this.request(`/products/${id}`)
+  async getProduct(slug: string): Promise<Product> {
+    return this.request(`/products/${slug}`)
   }
 
   async createProduct(product: ProductFormData): Promise<Product> {
     return this.request('/products', {
       method: 'POST',
-      body: JSON.stringify({
-        ...product,
-        // Convert category string to category object structure if needed
-        category: product.category // You might need to adjust this based on API requirements
-      }),
+      body: JSON.stringify(product),
     })
   }
 
-  async updateProduct(id: string, product: ProductFormData): Promise<Product> {
-    return this.request(`/products/${id}`, {
+  async updateProduct(slug: string, product: ProductFormData): Promise<Product> {
+    return this.request(`/products/${slug}`, {
       method: 'PUT',
-      body: JSON.stringify({
-        ...product,
-        category: product.category // Adjust based on API requirements
-      }),
+      body: JSON.stringify(product),
     })
   }
 
-  async deleteProduct(id: string): Promise<void> {
-    return this.request(`/products/${id}`, {
+  async deleteProduct(slug: string): Promise<void> {
+    return this.request(`/products/${slug}`, {
       method: 'DELETE',
     })
   }

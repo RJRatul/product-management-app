@@ -7,15 +7,15 @@ import Link from 'next/link'
 
 interface ProductTableProps {
   products: Product[]
-  onDelete: (id: string) => void
+  onDelete: (slug: string) => void
   isLoading?: boolean
 }
 
 export default function ProductTable({ products, onDelete, isLoading }: ProductTableProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  const handleDeleteClick = (id: string) => {
-    setDeleteConfirm(id)
+  const handleDeleteClick = (slug: string) => {
+    setDeleteConfirm(slug)
   }
 
   const confirmDelete = () => {
@@ -57,6 +57,9 @@ export default function ProductTable({ products, onDelete, isLoading }: ProductT
                   Price
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Slug
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -89,21 +92,24 @@ export default function ProductTable({ products, onDelete, isLoading }: ProductT
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ${product.price.toFixed(2)}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                    {product.slug}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                     <Link
-                      href={`/dashboard/product/${product.id}`}
+                      href={`/dashboard/product/${product.slug}`}
                       className="text-accent1 hover:text-accent2"
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
                     <Link
-                      href={`/dashboard/edit-product/${product.id}`}
+                      href={`/dashboard/edit-product/${product.slug}`}
                       className="text-blue-600 hover:text-blue-900"
                     >
                       <Edit className="h-4 w-4" />
                     </Link>
                     <button
-                      onClick={() => handleDeleteClick(product.id)}
+                      onClick={() => handleDeleteClick(product.slug)}
                       className="text-accent3 hover:text-red-700"
                     >
                       <Trash2 className="h-4 w-4" />

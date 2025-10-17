@@ -1,47 +1,51 @@
-'use client'
+"use client";
 
-import { Product } from '@/lib/api'
-import { useState } from 'react'
-import { Edit, Trash2, Eye, Image as ImageIcon } from 'lucide-react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { getSafeImageUrl, shouldOptimizeImage } from '@/lib/utils'
+import { Product } from "@/lib/api";
+import { useState } from "react";
+import { Edit, Trash2, Eye, Image as ImageIcon } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { getSafeImageUrl, shouldOptimizeImage } from "@/lib/utils";
 
 interface ProductTableProps {
-  products: Product[]
-  onDelete: (slug: string) => void
-  isLoading?: boolean
+  products: Product[];
+  onDelete: (id: string) => void;
+  isLoading?: boolean;
 }
 
-export default function ProductTable({ products, onDelete, isLoading }: ProductTableProps) {
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
+export default function ProductTable({
+  products,
+  onDelete,
+  isLoading,
+}: ProductTableProps) {
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   const handleDeleteClick = (slug: string) => {
-    setDeleteConfirm(slug)
-  }
+    setDeleteConfirm(slug);
+  };
 
   const confirmDelete = () => {
     if (deleteConfirm) {
-      onDelete(deleteConfirm)
-      setDeleteConfirm(null)
+      onDelete(deleteConfirm);
+      setDeleteConfirm(null);
     }
-  }
+  };
 
   const cancelDelete = () => {
-    setDeleteConfirm(null)
-  }
+    setDeleteConfirm(null);
+  };
 
   const handleImageError = (imageUrl: string) => {
-    setImageErrors(prev => new Set(prev).add(imageUrl))
-  }
+    setImageErrors((prev) => new Set(prev).add(imageUrl));
+  };
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-32">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent1"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -73,20 +77,24 @@ export default function ProductTable({ products, onDelete, isLoading }: ProductT
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {products.map((product) => {
-                const mainImage = product.images && product.images.length > 0 
-                  ? getSafeImageUrl(product.images[0])
-                  : null
+                const mainImage =
+                  product.images && product.images.length > 0
+                    ? getSafeImageUrl(product.images[0])
+                    : null;
 
-                const shouldOptimize = mainImage && mainImage !== '/placeholder-image.jpg' 
-                  ? shouldOptimizeImage(mainImage)
-                  : false
+                const shouldOptimize =
+                  mainImage && mainImage !== "/placeholder-image.jpg"
+                    ? shouldOptimizeImage(mainImage)
+                    : false;
 
-                const hasError = mainImage && imageErrors.has(mainImage)
+                const hasError = mainImage && imageErrors.has(mainImage);
 
                 return (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {mainImage && !hasError && mainImage !== '/placeholder-image.jpg' ? (
+                      {mainImage &&
+                      !hasError &&
+                      mainImage !== "/placeholder-image.jpg" ? (
                         <div className="relative h-12 w-12">
                           <Image
                             src={mainImage}
@@ -104,13 +112,15 @@ export default function ProductTable({ products, onDelete, isLoading }: ProductT
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {product.name}
+                      </div>
                       <div className="text-sm text-gray-500 truncate max-w-xs">
                         {product.description}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.category?.name || 'No category'}
+                      {product.category?.name || "No category"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       ${product.price.toFixed(2)}
@@ -126,20 +136,20 @@ export default function ProductTable({ products, onDelete, isLoading }: ProductT
                         <Eye className="h-4 w-4" />
                       </Link>
                       <Link
-                        href={`/dashboard/edit-product/${product.slug}`}
+                        href={`/dashboard/edit-product/${product.id}`}
                         className="text-blue-600 hover:text-blue-900"
                       >
                         <Edit className="h-4 w-4" />
                       </Link>
                       <button
-                        onClick={() => handleDeleteClick(product.slug)}
+                        onClick={() => handleDeleteClick(product.id)}
                         className="text-accent3 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </td>
                   </tr>
-                )
+                );
               })}
             </tbody>
           </table>
@@ -152,7 +162,8 @@ export default function ProductTable({ products, onDelete, isLoading }: ProductT
           <div className="bg-white rounded-lg p-6 max-w-sm w-full">
             <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this product? This action cannot be undone.
+              Are you sure you want to delete this product? This action cannot
+              be undone.
             </p>
             <div className="flex justify-end space-x-3">
               <button
@@ -172,5 +183,5 @@ export default function ProductTable({ products, onDelete, isLoading }: ProductT
         </div>
       )}
     </>
-  )
+  );
 }

@@ -32,9 +32,10 @@ export default function ProductsPage() {
     fetchProducts()
   }, [fetchProducts])
 
-  const handleDelete = async (slug: string) => {
+  // Change this to accept ID instead of slug
+  const handleDelete = async (id: string) => {
     try {
-      await apiService.deleteProduct(slug)
+      await apiService.deleteProduct(id)
       fetchProducts()
     } catch {
       setError('Failed to delete product')

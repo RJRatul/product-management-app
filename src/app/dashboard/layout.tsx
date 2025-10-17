@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package, Plus } from "lucide-react";
+import { Package, Plus, Tag } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -60,9 +60,9 @@ export default function DashboardLayout({
       </div>
     );
   }
-
   const navigation = [
     { name: "Products", href: "/dashboard/products", icon: Package },
+    { name: "Categories", href: "/dashboard/categories", icon: Tag },
     { name: "Create Product", href: "/dashboard/create-product", icon: Plus },
   ];
 

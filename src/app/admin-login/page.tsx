@@ -33,7 +33,7 @@ export default function AdminLogin() {
       const response = await apiService.login(data.email)
       dispatch(setCredentials({ email: data.email, token: response.token }))
       router.push('/dashboard/products')
-    } catch (err) {
+    } catch {
       setError('Login failed. Please check your email and try again.')
     } finally {
       setLoading(false)

@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Product, apiService } from '@/lib/api'
 import Link from 'next/link'
-import { ArrowLeft, Edit, Trash2, Calendar, Tag } from 'lucide-react'
+import { ArrowLeft, Edit, Trash2, Calendar, Tag, Image as ImageIcon } from 'lucide-react'
+import Image from 'next/image'
+import { getSafeImageUrl } from '@/lib/utils'
 
 export default function ProductDetailsPage() {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(0)
   const router = useRouter()
   const params = useParams()
   const slug = params.slug as string
@@ -20,7 +23,7 @@ export default function ProductDetailsPage() {
       try {
         const productData: Product = await apiService.getProduct(slug)
         setProduct(productData)
-      } catch (err) {
+      } catch {
         setError('Failed to load product')
       } finally {
         setLoading(false)
@@ -39,7 +42,7 @@ export default function ProductDetailsPage() {
     try {
       await apiService.deleteProduct(slug)
       router.push('/dashboard/products')
-    } catch (err) {
+    } catch {
       setError('Failed to delete product')
     } finally {
       setDeleteLoading(false)
@@ -86,6 +89,9 @@ export default function ProductDetailsPage() {
     )
   }
 
+  const safeImages = product.images?.map(img => getSafeImageUrl(img)) || []
+  const categoryImage = product.category?.image ? getSafeImageUrl(product.category.image) : null
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -124,29 +130,51 @@ export default function ProductDetailsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Product Images */}
             <div className="space-y-4">
-              {product.images && product.images.length > 0 ? (
+              {safeImages.length > 0 && safeImages[0] !== '/placeholder-image.jpg' ? (
                 <>
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="w-full h-80 object-cover rounded-lg"
-                  />
-                  {product.images.length > 1 && (
+                  <div className="relative w-full h-80 bg-gray-100 rounded-lg overflow-hidden">
+                    <Image
+                      src={safeImages[selectedImage]}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = '/placeholder-image.jpg'
+                      }}
+                    />
+                  </div>
+                  
+                  {safeImages.length > 1 && (
                     <div className="grid grid-cols-4 gap-2">
-                      {product.images.slice(1).map((image, index) => (
-                        <img
+                      {safeImages.slice(1).map((image, index) => (
+                        <button
                           key={index}
-                          src={image}
-                          alt={`${product.name} ${index + 2}`}
-                          className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-80"
-                        />
+                          onClick={() => setSelectedImage(index + 1)}
+                          className={`relative w-full h-20 bg-gray-100 rounded overflow-hidden border-2 ${
+                            selectedImage === index + 1 ? 'border-accent1' : 'border-transparent'
+                          } hover:border-accent2 transition-colors`}
+                        >
+                          <Image
+                            src={image}
+                            alt={`${product.name} ${index + 2}`}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 1024px) 25vw, 12.5vw"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = '/placeholder-image.jpg'
+                            }}
+                          />
+                        </button>
                       ))}
                     </div>
                   )}
                 </>
               ) : (
                 <div className="w-full h-80 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-500 text-lg">No images available</span>
+                  <ImageIcon className="h-16 w-16 text-gray-400" />
                 </div>
               )}
             </div>
@@ -200,14 +228,22 @@ export default function ProductDetailsPage() {
                       <h4 className="text-sm font-medium text-gray-500">Category ID</h4>
                       <p className="text-sm font-mono text-primary">{product.category.id}</p>
                     </div>
-                    {product.category.image && (
+                    {categoryImage && categoryImage !== '/placeholder-image.jpg' && (
                       <div className="col-span-2">
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Category Image</h4>
-                        <img
-                          src={product.category.image}
-                          alt={product.category.name}
-                          className="w-20 h-20 object-cover rounded"
-                        />
+                        <div className="relative w-20 h-20">
+                          <Image
+                            src={categoryImage}
+                            alt={product.category.name}
+                            fill
+                            className="object-cover rounded"
+                            sizes="80px"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = '/placeholder-image.jpg'
+                            }}
+                          />
+                        </div>
                       </div>
                     )}
                   </div>

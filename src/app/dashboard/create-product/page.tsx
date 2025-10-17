@@ -20,6 +20,10 @@ export default function CreateProductPage() {
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
+    defaultValues: {
+      images: [''],
+      stock: 0,
+    },
   })
 
   const onSubmit = async (data: ProductFormData) => {
@@ -29,7 +33,7 @@ export default function CreateProductPage() {
     try {
       await apiService.createProduct(data)
       router.push('/dashboard/products')
-    } catch (err) {
+    } catch {
       setError('Failed to create product. Please try again.')
     } finally {
       setLoading(false)
@@ -122,17 +126,17 @@ export default function CreateProductPage() {
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="image" className="block text-sm font-medium text-gray-700">
-                Image URL
+              <label htmlFor="images" className="block text-sm font-medium text-gray-700">
+                Image URL *
               </label>
               <input
-                {...register('image')}
+                {...register('images.0')}
                 type="url"
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-accent1 focus:border-accent1"
                 placeholder="https://example.com/image.jpg"
               />
-              {errors.image && (
-                <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>
+              {errors.images && (
+                <p className="mt-1 text-sm text-red-600">{errors.images.message}</p>
               )}
             </div>
 

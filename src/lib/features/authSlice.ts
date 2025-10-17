@@ -6,10 +6,23 @@ interface AuthState {
   isAuthenticated: boolean
 }
 
+const getStoredAuthData = () => {
+  if (typeof window === 'undefined') {
+    return { token: null, email: null }
+  }
+  
+  return {
+    token: localStorage.getItem('token'),
+    email: localStorage.getItem('email'),
+  }
+}
+
+const { token, email } = getStoredAuthData()
+
 const initialState: AuthState = {
-  token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
-  email: typeof window !== 'undefined' ? localStorage.getItem('email') : null,
-  isAuthenticated: typeof window !== 'undefined' ? !!localStorage.getItem('token') : false,
+  token,
+  email,
+  isAuthenticated: !!token,
 }
 
 const authSlice = createSlice({
@@ -20,6 +33,7 @@ const authSlice = createSlice({
       state.token = action.payload.token
       state.email = action.payload.email
       state.isAuthenticated = true
+      
       if (typeof window !== 'undefined') {
         localStorage.setItem('token', action.payload.token)
         localStorage.setItem('email', action.payload.email)
@@ -29,6 +43,7 @@ const authSlice = createSlice({
       state.token = null
       state.email = null
       state.isAuthenticated = false
+      
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token')
         localStorage.removeItem('email')

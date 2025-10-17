@@ -9,8 +9,8 @@ export const productSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   price: z.number().min(0.01, 'Price must be greater than 0'),
   category: z.string().min(1, 'Category is required'),
-  images: z.array(z.string().url('Invalid image URL')).optional().default([]),
-  stock: z.number().min(0, 'Stock cannot be negative').optional().default(0),
+  images: z.array(z.string().url('Invalid image URL')).min(1, 'At least one image is required'),
+  stock: z.number().min(0, 'Stock cannot be negative'),
 })
 
 export type LoginFormData = z.infer<typeof loginSchema>

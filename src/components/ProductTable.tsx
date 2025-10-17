@@ -2,8 +2,10 @@
 
 import { Product } from '@/lib/api'
 import { useState } from 'react'
-import { Edit, Trash2, Eye } from 'lucide-react'
+import { Edit, Trash2, Eye, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
+import { getSafeImageUrl, shouldOptimizeImage } from '@/lib/utils'
 
 interface ProductTableProps {
   products: Product[]
@@ -13,6 +15,7 @@ interface ProductTableProps {
 
 export default function ProductTable({ products, onDelete, isLoading }: ProductTableProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
 
   const handleDeleteClick = (slug: string) => {
     setDeleteConfirm(slug)
@@ -27,6 +30,10 @@ export default function ProductTable({ products, onDelete, isLoading }: ProductT
 
   const cancelDelete = () => {
     setDeleteConfirm(null)
+  }
+
+  const handleImageError = (imageUrl: string) => {
+    setImageErrors(prev => new Set(prev).add(imageUrl))
   }
 
   if (isLoading) {
@@ -65,58 +72,75 @@ export default function ProductTable({ products, onDelete, isLoading }: ProductT
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {products.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {product.images && product.images.length > 0 ? (
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        className="h-12 w-12 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center">
-                        <span className="text-gray-500 text-xs">No image</span>
+              {products.map((product) => {
+                const mainImage = product.images && product.images.length > 0 
+                  ? getSafeImageUrl(product.images[0])
+                  : null
+
+                const shouldOptimize = mainImage && mainImage !== '/placeholder-image.jpg' 
+                  ? shouldOptimizeImage(mainImage)
+                  : false
+
+                const hasError = mainImage && imageErrors.has(mainImage)
+
+                return (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {mainImage && !hasError && mainImage !== '/placeholder-image.jpg' ? (
+                        <div className="relative h-12 w-12">
+                          <Image
+                            src={mainImage}
+                            alt={product.name}
+                            fill
+                            className="object-cover rounded"
+                            unoptimized={!shouldOptimize}
+                            onError={() => handleImageError(mainImage)}
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center">
+                          <ImageIcon className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      <div className="text-sm text-gray-500 truncate max-w-xs">
+                        {product.description}
                       </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                    <div className="text-sm text-gray-500 truncate max-w-xs">
-                      {product.description}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.category?.name || 'No category'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${product.price.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                    {product.slug}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <Link
-                      href={`/dashboard/product/${product.slug}`}
-                      className="text-accent1 hover:text-accent2"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Link>
-                    <Link
-                      href={`/dashboard/edit-product/${product.slug}`}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Link>
-                    <button
-                      onClick={() => handleDeleteClick(product.slug)}
-                      className="text-accent3 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {product.category?.name || 'No category'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      ${product.price.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                      {product.slug}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <Link
+                        href={`/dashboard/product/${product.slug}`}
+                        className="text-accent1 hover:text-accent2"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                      <Link
+                        href={`/dashboard/edit-product/${product.slug}`}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteClick(product.slug)}
+                        className="text-accent3 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

@@ -5,7 +5,9 @@ import { useParams } from 'next/navigation'
 import { Product, apiService } from '@/lib/api'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
-import { ArrowLeft, Tag, Calendar, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, Tag, Calendar, ShoppingCart, Image as ImageIcon } from 'lucide-react'
+import Image from 'next/image'
+import { getSafeImageUrl } from '@/lib/utils'
 
 export default function ProductDetailsPage() {
   const [product, setProduct] = useState<Product | null>(null)
@@ -20,7 +22,7 @@ export default function ProductDetailsPage() {
       try {
         const productData: Product = await apiService.getProduct(slug)
         setProduct(productData)
-      } catch (err) {
+      } catch {
         setError('Failed to load product')
       } finally {
         setLoading(false)
@@ -56,6 +58,9 @@ export default function ProductDetailsPage() {
     )
   }
 
+  const safeImages = product.images?.map(img => getSafeImageUrl(img)) || []
+  const categoryImage = product.category?.image ? getSafeImageUrl(product.category.image) : null
+
   return (
     <div className="min-h-screen bg-secondary">
       <Navbar />
@@ -75,30 +80,42 @@ export default function ProductDetailsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Product Images */}
             <div className="space-y-4">
-              {product.images && product.images.length > 0 ? (
+              {safeImages.length > 0 && safeImages[0] !== '/placeholder-image.jpg' ? (
                 <>
-                  <div className="w-full h-96 bg-gray-100 rounded-lg overflow-hidden">
-                    <img
-                      src={product.images[selectedImage]}
+                  <div className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden">
+                    <Image
+                      src={safeImages[selectedImage]}
                       alt={product.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = '/placeholder-image.jpg'
+                      }}
                     />
                   </div>
                   
-                  {product.images.length > 1 && (
+                  {safeImages.length > 1 && (
                     <div className="grid grid-cols-4 gap-3">
-                      {product.images.map((image, index) => (
+                      {safeImages.map((image, index) => (
                         <button
                           key={index}
                           onClick={() => setSelectedImage(index)}
-                          className={`w-full h-20 bg-gray-100 rounded-lg overflow-hidden border-2 ${
+                          className={`relative w-full h-20 bg-gray-100 rounded-lg overflow-hidden border-2 ${
                             selectedImage === index ? 'border-accent1' : 'border-transparent'
                           } hover:border-accent2 transition-colors`}
                         >
-                          <img
+                          <Image
                             src={image}
                             alt={`${product.name} ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 1024px) 25vw, 12.5vw"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = '/placeholder-image.jpg'
+                            }}
                           />
                         </button>
                       ))}
@@ -107,7 +124,7 @@ export default function ProductDetailsPage() {
                 </>
               ) : (
                 <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-500 text-lg">No images available</span>
+                  <ImageIcon className="h-16 w-16 text-gray-400" />
                 </div>
               )}
             </div>
@@ -146,12 +163,24 @@ export default function ProductDetailsPage() {
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="text-sm font-medium text-gray-500 mb-2">Category Details</h3>
                     <div className="flex items-center space-x-4">
-                      {product.category.image && (
-                        <img
-                          src={product.category.image}
-                          alt={product.category.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
+                      {categoryImage && categoryImage !== '/placeholder-image.jpg' ? (
+                        <div className="relative w-12 h-12">
+                          <Image
+                            src={categoryImage}
+                            alt={product.category.name}
+                            fill
+                            className="object-cover rounded"
+                            sizes="48px"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = '/placeholder-image.jpg'
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                          <ImageIcon className="h-6 w-6 text-gray-400" />
+                        </div>
                       )}
                       <div>
                         <p className="font-medium text-primary">{product.category.name}</p>

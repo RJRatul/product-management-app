@@ -37,7 +37,11 @@ export interface ProductsResponse {
 
 class ApiService {
   private async request(endpoint: string, options: RequestInit = {}) {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    // Safely get token only on client side
+    let token: string | null = null
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('token')
+    }
     
     const config = {
       headers: {

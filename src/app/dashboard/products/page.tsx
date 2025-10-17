@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Product, apiService } from '@/lib/api'
 import ProductTable from '@/components/ProductTable'
 import Link from 'next/link'
@@ -15,29 +15,28 @@ export default function ProductsPage() {
   const [limit] = useState(10)
   const [hasMore, setHasMore] = useState(true)
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true)
       const data = await apiService.getProducts(offset, limit, search)
       setProducts(data)
       setHasMore(data.length === limit)
-    } catch (err) {
+    } catch {
       setError('Failed to load products')
     } finally {
       setLoading(false)
     }
-  }
+  }, [offset, limit, search])
 
   useEffect(() => {
     fetchProducts()
-  }, [offset, search])
+  }, [fetchProducts])
 
   const handleDelete = async (slug: string) => {
     try {
       await apiService.deleteProduct(slug)
-      // Refresh the products list
       fetchProducts()
-    } catch (err) {
+    } catch {
       setError('Failed to delete product')
     }
   }
@@ -45,7 +44,6 @@ export default function ProductsPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setOffset(0)
-    fetchProducts()
   }
 
   const handleNext = () => {

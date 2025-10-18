@@ -141,7 +141,7 @@ export default function Navbar() {
             {/* Mobile Navigation Links */}
             <Link
               href="/"
-              className="text-secondary hover:bg-accent1 block px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center"
+              className="text-secondary hover:bg-accent1  px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center"
               onClick={closeMobileMenu}
             >
               <Home className="h-5 w-5 mr-3" />
@@ -150,7 +150,7 @@ export default function Navbar() {
             
             <Link
               href="/shop"
-              className="text-secondary hover:bg-accent1 block px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center"
+              className="text-secondary hover:bg-accent1  px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center"
               onClick={closeMobileMenu}
             >
               <ShoppingBag className="h-5 w-5 mr-3" />
@@ -160,7 +160,7 @@ export default function Navbar() {
             {isAuthenticated && (
               <Link
                 href="/dashboard/products"
-                className="text-secondary hover:bg-accent1 block px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center"
+                className="text-secondary hover:bg-accent1  px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center"
                 onClick={closeMobileMenu}
               >
                 <LayoutDashboard className="h-5 w-5 mr-3" />
@@ -177,7 +177,7 @@ export default function Navbar() {
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="cursor-pointer w-full text-left text-secondary hover:bg-accent1 block px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center"
+                    className="cursor-pointer w-full text-left text-secondary hover:bg-accent1  px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center"
                   >
                     <LogOut className="h-5 w-5 mr-3" />
                     Logout
@@ -186,7 +186,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/admin-login"
-                  className="text-secondary hover:bg-accent1 block px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center justify-center bg-accent2 text-primary font-semibold"
+                  className="text-secondary hover:bg-accent1  px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center justify-center bg-accent2 text-primary font-semibold"
                   onClick={closeMobileMenu}
                 >
                   Admin Login

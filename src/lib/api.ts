@@ -33,7 +33,7 @@ class ApiService {
     if (typeof window !== 'undefined') {
       token = localStorage.getItem('token')
     }
-    
+
     const config = {
       headers: {
         'Content-Type': 'application/json',
@@ -44,11 +44,11 @@ class ApiService {
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`)
     }
-    
+
     return response.json()
   }
 
@@ -59,22 +59,31 @@ class ApiService {
     })
   }
 
-  // Product endpoints
-  async getProducts(offset: number = 0, limit: number = 10, search: string = ''): Promise<Product[]> {
+  async getProducts(offset: number = 0, limit: number = 10, search: string = '', categoryId: string = ''): Promise<Product[]> {
     const queryParams = new URLSearchParams({
       offset: offset.toString(),
       limit: limit.toString(),
-      ...(search && { search }),
+      ...(categoryId && { categoryId }),
     })
-    
+
     return this.request(`/products?${queryParams}`)
+  }
+
+  async searchProducts(searchedText: string, offset: number = 0, limit: number = 10): Promise<Product[]> {
+    const queryParams = new URLSearchParams({
+      searchedText,
+      offset: offset.toString(),
+      limit: limit.toString(),
+    })
+
+    return this.request(`/products/search?${queryParams}`)
   }
 
   async getProduct(slug: string): Promise<Product> {
     return this.request(`/products/${slug}`)
   }
 
-  async createProduct(productData: { 
+  async createProduct(productData: {
     name: string
     description: string
     price: number
@@ -87,7 +96,7 @@ class ApiService {
     })
   }
 
-  async updateProduct(id: string, productData: { 
+  async updateProduct(id: string, productData: {
     name: string
     description: string
     price?: number
@@ -112,7 +121,7 @@ class ApiService {
       offset: offset.toString(),
       limit: limit.toString(),
     })
-    
+
     return this.request(`/categories?${queryParams}`)
   }
 
@@ -120,7 +129,7 @@ class ApiService {
     const queryParams = new URLSearchParams({
       searchedText: searchText,
     })
-    
+
     return this.request(`/categories/search?${queryParams}`)
   }
 
@@ -128,7 +137,7 @@ class ApiService {
     return this.request(`/categories/${id}`)
   }
 
-  async createCategory(categoryData: { 
+  async createCategory(categoryData: {
     name: string
     description?: string
     image?: string
@@ -139,7 +148,7 @@ class ApiService {
     })
   }
 
-  async updateCategory(id: string, categoryData: { 
+  async updateCategory(id: string, categoryData: {
     name: string
     description?: string
     image?: string

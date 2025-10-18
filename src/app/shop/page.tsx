@@ -20,7 +20,7 @@ export default function Shop() {
         const data = await apiService.getProducts(0, 50);
         setProducts(data);
       } catch {
-        setError("Failed to load products");
+        setError("You need to be logged in to view products");
       } finally {
         setLoading(false);
       }
@@ -74,10 +74,10 @@ export default function Shop() {
             return (
               <div
                 key={product.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col justify-between"
               >
                 {mainImage && !hasError && mainImage !== '/placeholder-image.jpg' ? (
-                  <div className="relative w-full h-48">
+                  <div className="relative w-full h-68">
                     <Image
                       src={mainImage}
                       alt={product.name}

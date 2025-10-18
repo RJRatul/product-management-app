@@ -6,7 +6,7 @@ import { Product, apiService } from '@/lib/api'
 import Link from 'next/link'
 import { ArrowLeft, Edit, Trash2, Tag, Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
-import { getSafeImageUrl } from '@/lib/utils'
+import { getSafeImageUrl, shouldOptimizeImage } from '@/lib/utils'
 
 export default function ProductDetailsPage() {
   const [product, setProduct] = useState<Product | null>(null)
@@ -14,6 +14,7 @@ export default function ProductDetailsPage() {
   const [error, setError] = useState('')
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
   const router = useRouter()
   const params = useParams()
   const slug = params.slug as string
@@ -32,6 +33,10 @@ export default function ProductDetailsPage() {
 
     fetchProduct()
   }, [slug])
+
+  const handleImageError = (imageUrl: string) => {
+    setImageErrors((prev) => new Set(prev).add(imageUrl))
+  }
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
@@ -134,43 +139,60 @@ export default function ProductDetailsPage() {
             <div className="space-y-4">
               {safeImages.length > 0 && safeImages[0] !== '/placeholder-image.jpg' ? (
                 <>
+                  {/* Main Image */}
                   <div className="relative w-full h-60 sm:h-72 md:h-80 bg-gray-100 rounded-lg overflow-hidden">
-                    <Image
-                      src={safeImages[selectedImage]}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 1024px) 100vw, 50vw"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.src = '/placeholder-image.jpg'
-                      }}
-                    />
+                    {safeImages[selectedImage] && !imageErrors.has(safeImages[selectedImage]) ? (
+                      <Image
+                        src={safeImages[selectedImage]}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        unoptimized={!shouldOptimizeImage(safeImages[selectedImage])}
+                        onError={() => handleImageError(safeImages[selectedImage])}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <ImageIcon className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400" />
+                      </div>
+                    )}
                   </div>
                   
+                  {/* Thumbnail Images */}
                   {safeImages.length > 1 && (
                     <div className="grid grid-cols-4 gap-2">
-                      {safeImages.slice(1).map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedImage(index + 1)}
-                          className={`relative w-full h-16 sm:h-20 bg-gray-100 rounded overflow-hidden border-2 cursor-pointer ${
-                            selectedImage === index + 1 ? 'border-accent1' : 'border-transparent'
-                          } hover:border-accent2 transition-colors`}
-                        >
-                          <Image
-                            src={image}
-                            alt={`${product.name} ${index + 2}`}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 1024px) 25vw, 12.5vw"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = '/placeholder-image.jpg'
-                            }}
-                          />
-                        </button>
-                      ))}
+                      {safeImages.map((image, index) => {
+                        const hasError = imageErrors.has(image)
+                        const shouldOptimize = shouldOptimizeImage(image)
+                        
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedImage(index)}
+                            className={`relative w-full h-16 sm:h-20 bg-gray-100 rounded overflow-hidden border-2 cursor-pointer transition-colors ${
+                              selectedImage === index 
+                                ? 'border-accent1' 
+                                : 'border-transparent hover:border-accent2'
+                            }`}
+                          >
+                            {image && !hasError && image !== '/placeholder-image.jpg' ? (
+                              <Image
+                                src={image}
+                                alt={`${product.name} ${index + 1}`}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 1024px) 25vw, 12.5vw"
+                                unoptimized={!shouldOptimize}
+                                onError={() => handleImageError(image)}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <ImageIcon className="h-6 w-6 text-gray-400" />
+                              </div>
+                            )}
+                          </button>
+                        )
+                      })}
                     </div>
                   )}
                 </>
@@ -236,17 +258,21 @@ export default function ProductDetailsPage() {
                       <div className="xs:col-span-2">
                         <h4 className="text-xs sm:text-sm font-medium text-gray-500 mb-2">Category Image</h4>
                         <div className="relative w-16 h-16 sm:w-20 sm:h-20">
-                          <Image
-                            src={categoryImage}
-                            alt={product.category.name}
-                            fill
-                            className="object-cover rounded"
-                            sizes="(max-width: 640px) 64px, 80px"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = '/placeholder-image.jpg'
-                            }}
-                          />
+                          {!imageErrors.has(categoryImage) ? (
+                            <Image
+                              src={categoryImage}
+                              alt={product.category.name}
+                              fill
+                              className="object-cover rounded"
+                              sizes="(max-width: 640px) 64px, 80px"
+                              unoptimized={!shouldOptimizeImage(categoryImage)}
+                              onError={() => handleImageError(categoryImage)}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                              <ImageIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

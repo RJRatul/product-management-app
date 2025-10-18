@@ -102,7 +102,7 @@ export default function ProductDetailsPage() {
                         <button
                           key={index}
                           onClick={() => setSelectedImage(index)}
-                          className={`relative w-full h-20 bg-gray-100 rounded-lg overflow-hidden border-2 ${
+                          className={`cursor-pointer relative w-full h-20 bg-gray-100 rounded-lg overflow-hidden border-2 ${
                             selectedImage === index ? 'border-accent1' : 'border-transparent'
                           } hover:border-accent2 transition-colors`}
                         >
@@ -194,16 +194,16 @@ export default function ProductDetailsPage() {
               </div>
 
               <div className="pt-6 space-y-4">
-                <button className="w-full bg-accent2 text-primary py-4 px-6 rounded-lg font-semibold text-lg hover:bg-amber-600 hover:text-white transition-colors flex items-center justify-center space-x-2">
+                <button className="cursor-pointer w-full bg-accent2 text-primary py-4 px-6 rounded-lg font-semibold text-lg hover:bg-amber-600 hover:text-white transition-colors flex items-center justify-center space-x-2">
                   <ShoppingCart className="h-5 w-5" />
                   <span>Add to Cart</span>
                 </button>
                 
                 <div className="grid grid-cols-2 gap-3">
-                  <button className="bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+                  <button className="cursor-pointer bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors">
                     Buy Now
                   </button>
-                  <button className="border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                  <button className="cursor-pointer border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors">
                     Add to Wishlist
                   </button>
                 </div>

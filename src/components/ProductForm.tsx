@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { productSchema, ProductFormData } from '@/lib/validations'
 import { Category, apiService } from '@/lib/api'
+import { uploadImageToImgBB, validateImageFile } from '@/lib/imageUpload'
 import { Plus, Trash2, Loader2, Upload } from 'lucide-react'
 import Image from 'next/image'
 import { getSafeImageUrl, shouldOptimizeImage } from '@/lib/utils'
@@ -66,7 +67,6 @@ export default function ProductForm({
     fetchCategories()
   }, [])
 
-  // Reset form when initialData changes
   useEffect(() => {
     if (initialData) {
       reset(initialData)
@@ -78,34 +78,21 @@ export default function ProductForm({
       setUploading(index)
       setUploadErrors(prev => ({ ...prev, [index]: '' }))
 
-      // Simple file validation
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
-      if (!allowedTypes.includes(file.type)) {
-        throw new Error('Please select a valid image file (JPEG, PNG, GIF, WebP)')
+      const validationError = validateImageFile(file)
+      if (validationError) {
+        throw new Error(validationError)
       }
 
-      // Check file size (5MB limit)
-      const maxSize = 5 * 1024 * 1024
-      if (file.size > maxSize) {
-        throw new Error('Image size must be less than 5MB')
-      }
-
-      // Create object URL for immediate preview
-      const objectUrl = URL.createObjectURL(file)
+      const imageUrl = await uploadImageToImgBB(file)
       
-      // Update the form field with object URL for preview
       const newImages = [...images]
-      newImages[index] = objectUrl
+      newImages[index] = imageUrl
       setValue('images', newImages)
 
-      // Note: In a real app, you'd upload to your server or ImgBB here
-      // For now, we'll use the object URL as a placeholder
-      console.log('File selected:', file.name)
-      
     } catch (err) {
       setUploadErrors(prev => ({ 
         ...prev, 
-        [index]: err instanceof Error ? err.message : 'Failed to process image' 
+        [index]: err instanceof Error ? err.message : 'Failed to upload image' 
       }))
     } finally {
       setUploading(null)
@@ -117,7 +104,6 @@ export default function ProductForm({
     if (file) {
       handleImageUpload(file, index)
     }
-    // Reset input
     event.target.value = ''
   }
 
@@ -127,12 +113,6 @@ export default function ProductForm({
 
   const removeImageField = (index: number) => {
     if (images.length > 1) {
-      // Clean up object URLs if any
-      const currentImage = images[index]
-      if (currentImage.startsWith('blob:')) {
-        URL.revokeObjectURL(currentImage)
-      }
-      
       setValue('images', images.filter((_, i) => i !== index))
       setUploadErrors(prev => {
         const newErrors = { ...prev }
@@ -143,12 +123,6 @@ export default function ProductForm({
   }
 
   const updateImageField = (index: number, value: string) => {
-    // Clean up old object URL if replacing
-    const currentImage = images[index]
-    if (currentImage.startsWith('blob:')) {
-      URL.revokeObjectURL(currentImage)
-    }
-    
     const newImages = [...images]
     newImages[index] = value
     setValue('images', newImages)
@@ -156,11 +130,6 @@ export default function ProductForm({
   }
 
   const clearImageField = (index: number) => {
-    // Clean up object URL if exists
-    const currentImage = images[index]
-    if (currentImage.startsWith('blob:')) {
-      URL.revokeObjectURL(currentImage)
-    }
     updateImageField(index, '')
   }
 
@@ -269,7 +238,6 @@ export default function ProductForm({
                 const shouldOptimize = safeImage && safeImage !== '/placeholder-image.jpg' 
                   ? shouldOptimizeImage(safeImage)
                   : false
-                const isLocalImage = image.startsWith('blob:')
 
                 return (
                   <div key={index} className="border border-gray-300 rounded-lg p-4">
@@ -280,16 +248,16 @@ export default function ProductForm({
                           {image && safeImage !== '/placeholder-image.jpg' ? (
                             <div className="relative w-full h-full">
                               <Image
-                                src={isLocalImage ? image : safeImage}
+                                src={safeImage}
                                 alt={`Preview ${index + 1}`}
                                 fill
                                 className="object-cover rounded"
-                                unoptimized={!shouldOptimize || isLocalImage}
+                                unoptimized={!shouldOptimize}
                               />
                               <button
                                 type="button"
                                 onClick={() => clearImageField(index)}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                className="cursor-pointer absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
@@ -305,7 +273,7 @@ export default function ProductForm({
                               {uploading === index ? (
                                 <div className="flex flex-col items-center">
                                   <Loader2 className="h-6 w-6 text-gray-400 animate-spin mb-1" />
-                                  <span className="text-xs text-gray-500">Processing...</span>
+                                  <span className="text-xs text-gray-500">Uploading...</span>
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-center">
@@ -321,17 +289,12 @@ export default function ProductForm({
                         {uploadErrors[index] && (
                           <p className="mt-1 text-xs text-red-600 text-center">{uploadErrors[index]}</p>
                         )}
-                        {isLocalImage && (
-                          <p className="mt-1 text-xs text-yellow-600 text-center">
-                            Local image - will need actual URL for submission
-                          </p>
-                        )}
                       </div>
 
                       {/* URL Input */}
                       <div className="flex-1 flex flex-col">
                         <label className="text-sm text-gray-600 mb-2">
-                          Image URL:
+                          Image URL {image && ' (Uploaded image will appear here)'}
                         </label>
                         <div className="flex gap-2">
                           <input
@@ -345,7 +308,7 @@ export default function ProductForm({
                             <button
                               type="button"
                               onClick={() => removeImageField(index)}
-                              className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors"
+                              className="cursor-pointer px-3 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors"
                               title="Remove image field"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -365,7 +328,7 @@ export default function ProductForm({
               <button
                 type="button"
                 onClick={addImageField}
-                className="flex items-center justify-center space-x-2 w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-accent1 hover:bg-gray-50 transition-colors"
+                className="cursor-pointer flex items-center justify-center space-x-2 w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-accent1 hover:bg-gray-50 transition-colors"
               >
                 <Plus className="h-5 w-5 text-gray-400" />
                 <span className="text-gray-600">Add Another Image</span>
@@ -382,7 +345,7 @@ export default function ProductForm({
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-accent1 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent1 disabled:opacity-50 transition-colors"
+            className="cursor-pointer px-6 py-2 bg-accent1 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent1 disabled:opacity-50 transition-colors"
           >
             {loading ? (
               <span className="flex items-center space-x-2">

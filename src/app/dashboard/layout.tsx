@@ -1,101 +1,110 @@
-"use client";
+'use client'
 
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Package, Plus, Tag } from "lucide-react";
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
+import { useRouter, usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
+import Navbar from "@/components/Navbar"
+import Link from "next/link"
+import { Package, Plus, Tag, Menu, ChevronLeft, ChevronRight } from "lucide-react"
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const router = useRouter();
-  const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const router = useRouter()
+  const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
-    if (mounted && !isAuthenticated) {
-      router.push("/admin-login");
-    }
-  }, [mounted, isAuthenticated, router]);
+    if (mounted && !isAuthenticated) router.push("/admin-login")
+  }, [mounted, isAuthenticated, router])
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-secondary">
-        <Navbar />
-        <div className="flex">
-          <div className="w-64 bg-primary min-h-screen p-4">
-            <div className="space-y-2">
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-12 bg-gray-600 rounded-lg animate-pulse"
-                ></div>
-              ))}
-            </div>
-          </div>
-          <div className="flex-1 p-8">
-            <div className="h-8 bg-gray-300 rounded animate-pulse mb-6"></div>
-            <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!mounted) return null
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent1"></div>
-      </div>
-    );
-  }
   const navigation = [
     { name: "Products", href: "/dashboard/products", icon: Package },
     { name: "Categories", href: "/dashboard/categories", icon: Tag },
     { name: "Create Product", href: "/dashboard/create-product", icon: Plus },
-  ];
+  ]
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen flex flex-col bg-secondary">
+      {/* Top Navbar */}
       <Navbar />
 
-      <div className="flex">
-        <div className="w-64 bg-primary min-h-screen p-4">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-white shadow-sm border-b p-4 flex items-center justify-between">
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="cursor-pointer p-2 rounded-lg bg-primary text-white hover:bg-accent1 transition-colors"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <span className="font-semibold text-primary">Dashboard</span>
+      </div>
+
+      <div className="flex flex-1 relative">
+        {/* Sidebar */}
+        <aside
+          className={`
+            fixed md:static inset-y-0 left-0 bg-primary text-white transform
+            transition-transform duration-300 ease-in-out z-50
+            w-64 p-4
+            ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          `}
+        >
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold">Dashboard</h2>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="cursor-pointer md:hidden p-1 rounded hover:bg-accent1"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Navigation Links */}
           <nav className="space-y-2">
             {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-
+              const Icon = item.icon
+              const isActive = pathname === item.href
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive
                       ? "bg-accent1 text-white"
-                      : "text-secondary hover:bg-accent1 hover:text-white"
+                      : "hover:bg-accent1 hover:text-white text-secondary"
                   }`}
                 >
-                  <Icon className="h-5 w-5 mr-3" />
-                  {item.name}
+                  <Icon className="h-5 w-5" />
+                  <span>{item.name}</span>
                 </Link>
-              );
+              )
             })}
           </nav>
-        </div>
-        <div className="flex-1 p-8">{children}</div>
+        </aside>
+
+        {/* Overlay (mobile only) */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        {/* Main content */}
+        <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
+          {children}
+        </main>
       </div>
     </div>
-  );
+  )
 }

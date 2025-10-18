@@ -18,13 +18,19 @@ export default function CreateProductPage() {
     setError('')
 
     try {
-      // Transform form data to match API requirements
+      // Remove empty strings but keep all valid URLs (including uploaded ones)
+      const validImages = data.images.filter(img => img.trim() !== '')
+
+      if (validImages.length === 0) {
+        throw new Error('At least one image is required')
+      }
+
       const productData = {
         name: data.name,
         description: data.description,
         price: data.price,
         categoryId: data.categoryId,
-        images: data.images.filter(img => img.trim() !== ''), // Remove empty image URLs
+        images: validImages,
       }
 
       await apiService.createProduct(productData)
@@ -53,23 +59,8 @@ export default function CreateProductPage() {
         onSubmit={handleSubmit}
         loading={loading}
         error={error}
+        submitButtonText="Create Product"
       />
-
-      <div className="flex justify-end space-x-3 mt-6">
-        <Link
-          href="/dashboard/products"
-          className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Cancel
-        </Link>
-        <button
-          onClick={() => document.querySelector('form')?.requestSubmit()}
-          disabled={loading}
-          className="px-6 py-2 bg-accent1 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent1 disabled:opacity-50"
-        >
-          {loading ? 'Creating...' : 'Create Product'}
-        </button>
-      </div>
     </div>
   )
 }

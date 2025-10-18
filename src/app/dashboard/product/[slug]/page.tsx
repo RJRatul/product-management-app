@@ -117,7 +117,7 @@ export default function ProductDetailsPage() {
           <button
             onClick={handleDelete}
             disabled={deleteLoading}
-            className="flex items-center px-4 py-2 bg-accent3 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+            className="cursor-pointer flex items-center px-4 py-2 bg-accent3 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
           >
             <Trash2 className="h-4 w-4 mr-2" />
             {deleteLoading ? 'Deleting...' : 'Delete'}
@@ -152,7 +152,7 @@ export default function ProductDetailsPage() {
                         <button
                           key={index}
                           onClick={() => setSelectedImage(index + 1)}
-                          className={`relative w-full h-20 bg-gray-100 rounded overflow-hidden border-2 ${
+                          className={`relative w-full h-20 bg-gray-100 rounded overflow-hidden border-2 cursor-pointer ${
                             selectedImage === index + 1 ? 'border-accent1' : 'border-transparent'
                           } hover:border-accent2 transition-colors`}
                         >

@@ -1,67 +1,72 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { Product, apiService } from '@/lib/api'
-import { ProductFormData } from '@/lib/validations'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import ProductForm from '@/components/ProductForm'
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { Product, apiService } from "@/lib/api";
+import { ProductFormData } from "@/lib/validations";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import ProductForm from "@/components/ProductForm";
 
 export default function EditProductPage() {
-  const [product, setProduct] = useState<Product | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
-  const params = useParams()
-  const id = params.id as string
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        // First try to get product by ID (for edit)
-        // If that fails, try by slug (for viewing)
-        let productData: Product
-        try {
-          productData = await apiService.getProduct(id)
-        } catch {
-          // If getting by ID fails, it might be a slug, try that
-          productData = await apiService.getProduct(id)
-        }
-        setProduct(productData)
+        // Try to get product by ID
+        const productData = await apiService.getProduct(id);
+        setProduct(productData);
       } catch {
-        setError('Failed to load product')
+        setError("Failed to load product");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchProduct()
-  }, [id])
+    fetchProduct();
+  }, [id]);
 
   const handleSubmit = async (data: ProductFormData) => {
-    setSubmitting(true)
-    setError('')
+    setSubmitting(true);
+    setError("");
 
     try {
-      // Use the product ID for update, not the slug
+      // Filter out blob URLs and empty strings, keep existing valid URLs
+      const validImages = data.images.filter(
+        (img) => img.trim() !== "" && !img.startsWith("blob:")
+      );
+
+      if (validImages.length === 0) {
+        throw new Error("At least one valid image URL is required");
+      }
+
       const updateData = {
         name: data.name,
         description: data.description,
         price: data.price,
         categoryId: data.categoryId,
-        images: data.images.filter(img => img.trim() !== ''),
-      }
+        images: validImages,
+      };
 
-      await apiService.updateProduct(product!.id, updateData)
-      router.push('/dashboard/products')
-    } catch {
-      setError('Failed to update product. Please try again.')
+      await apiService.updateProduct(product!.id, updateData);
+      router.push("/dashboard/products");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update product. Please try again."
+      );
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -80,7 +85,7 @@ export default function EditProductPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent1"></div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error && !product) {
@@ -100,7 +105,7 @@ export default function EditProductPage() {
           {error}
         </div>
       </div>
-    )
+    );
   }
 
   if (!product) {
@@ -120,7 +125,7 @@ export default function EditProductPage() {
           Product not found
         </div>
       </div>
-    )
+    );
   }
 
   // Transform product data to form data
@@ -130,7 +135,7 @@ export default function EditProductPage() {
     price: product.price,
     categoryId: product.category.id,
     images: product.images,
-  }
+  };
 
   return (
     <div>
@@ -153,5 +158,5 @@ export default function EditProductPage() {
         submitButtonText="Update Product"
       />
     </div>
-  )
+  );
 }

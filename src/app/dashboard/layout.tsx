@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import Navbar from "@/components/Navbar"
 import Link from "next/link"
-import { Package, Plus, Tag, Menu, ChevronLeft, ChevronRight } from "lucide-react"
+import { Package, Plus, Tag, Menu, ChevronLeft } from "lucide-react"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
@@ -14,16 +14,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    if (mounted && !isAuthenticated) router.push("/admin-login")
+    if (mounted) {
+      if (!isAuthenticated) {
+        router.push("/admin-login")
+      } else {
+        setIsCheckingAuth(false)
+      }
+    }
   }, [mounted, isAuthenticated, router])
 
-  if (!mounted) return null
+  // Show loading state while checking authentication
+  if (!mounted || isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent1 mx-auto mb-4"></div>
+          <p className="text-primary">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render the dashboard layout if not authenticated
+  if (!isAuthenticated) {
+    return null
+  }
 
   const navigation = [
     { name: "Products", href: "/dashboard/products", icon: Package },

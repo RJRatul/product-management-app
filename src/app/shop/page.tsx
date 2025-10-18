@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import Image from "next/image";
 import { getSafeImageUrl, shouldOptimizeImage } from "@/lib/utils";
-import { Image as ImageIcon, Search, Filter, X } from "lucide-react";
+import { Image as ImageIcon, Search, Filter, X, ChevronDown } from "lucide-react";
 import Pagination from "@/components/Pagination";
 
 export default function Shop() {
@@ -23,7 +23,7 @@ export default function Shop() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [offset, setOffset] = useState(0);
-  const [limit] = useState(12); // 12 products per page for better grid layout
+  const [limit] = useState(12);
   const [hasMore, setHasMore] = useState(true);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
@@ -43,13 +43,10 @@ export default function Shop() {
       let data: Product[];
 
       if (search) {
-        // Use search endpoint when there's search text
         data = await apiService.searchProducts(search, offset, limit);
       } else if (selectedCategory) {
-        // Use category filter when category is selected
         data = await apiService.getProducts(offset, limit, "", selectedCategory);
       } else {
-        // Normal paginated products
         data = await apiService.getProducts(offset, limit);
       }
 
@@ -63,7 +60,6 @@ export default function Shop() {
   }, [offset, limit, search, selectedCategory]);
 
   useEffect(() => {
-    // Redirect if not logged in
     if (!isAuthenticated) {
       router.push("/admin-login");
       return;
@@ -90,7 +86,7 @@ export default function Shop() {
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setOffset(0);
-    setSearch(""); // Clear search when category is selected
+    setSearch("");
   };
 
   const clearFilters = () => {
@@ -108,6 +104,7 @@ export default function Shop() {
   };
 
   const hasActiveFilters = search || selectedCategory;
+  const selectedCategoryName = categories.find((c) => c.id === selectedCategory)?.name;
 
   if (!isAuthenticated) {
     return (
@@ -171,29 +168,34 @@ export default function Shop() {
             </button>
           </form>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Category Filter */}
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-500" />
-              <select
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="cursor-pointer border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent1 focus:border-transparent w-full sm:w-auto"
-              >
-                <option value="">All Categories</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            {/* Category Filter - Fixed responsive dropdown */}
+            <div className="w-full sm:w-auto">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                <div className="relative w-full sm:w-64">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    className="cursor-pointer w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent1 focus:border-transparent text-sm appearance-none bg-white pr-8"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
             </div>
 
             {/* Clear Filters */}
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="cursor-pointer flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="cursor-pointer flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors w-full sm:w-auto justify-center sm:justify-start"
               >
                 <X className="h-4 w-4" />
                 <span>Clear Filters</span>
@@ -203,13 +205,15 @@ export default function Shop() {
 
           {/* Active Filters Info */}
           {hasActiveFilters && (
-            <div className="text-sm text-gray-600">
-              {search && <span>Search: {search}</span>}
-              {search && selectedCategory && <span> • </span>}
+            <div className="text-sm text-gray-600 flex flex-wrap gap-2">
+              {search && (
+                <span className="bg-accent1/10 text-accent1 px-2 py-1 rounded">
+                  Search: {search}
+                </span>
+              )}
               {selectedCategory && (
-                <span>
-                  Category:{" "}
-                  {categories.find((c) => c.id === selectedCategory)?.name}
+                <span className="bg-accent2/10 text-accent2 px-2 py-1 rounded">
+                  Category: {selectedCategoryName}
                 </span>
               )}
             </div>

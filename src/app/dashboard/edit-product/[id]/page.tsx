@@ -7,15 +7,29 @@ import { ProductFormData } from "@/lib/validations";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import ProductForm from "@/components/ProductForm";
+import Toast, { ToastType } from "@/components/Toast";
 
 export default function EditProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
+    message: '',
+    type: 'success',
+    isVisible: false,
+  })
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+
+  const showToast = (message: string, type: ToastType = 'success') => {
+    setToast({ message, type, isVisible: true })
+  }
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }))
+  }
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -56,13 +70,19 @@ export default function EditProductPage() {
       };
 
       await apiService.updateProduct(product!.id, updateData);
-      router.push("/dashboard/products");
+      
+      showToast('Product updated successfully!', 'success')
+      
+      setTimeout(() => {
+        router.push("/dashboard/products");
+      }, 1500)
+      
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to update product. Please try again."
-      );
+      const errorMessage = err instanceof Error
+        ? err.message
+        : "Failed to update product. Please try again."
+      setError(errorMessage);
+      showToast(errorMessage, 'error')
     } finally {
       setSubmitting(false);
     }
@@ -79,7 +99,7 @@ export default function EditProductPage() {
             <ArrowLeft className="h-5 w-5 mr-1" />
             Back
           </Link>
-          <h1 className="text-3xl font-bold text-primary">Edit Product</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary">Edit Product</h1>
         </div>
         <div className="flex justify-center items-center h-32">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent1"></div>
@@ -99,7 +119,7 @@ export default function EditProductPage() {
             <ArrowLeft className="h-5 w-5 mr-1" />
             Back
           </Link>
-          <h1 className="text-3xl font-bold text-primary">Edit Product</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary">Edit Product</h1>
         </div>
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
@@ -119,7 +139,7 @@ export default function EditProductPage() {
             <ArrowLeft className="h-5 w-5 mr-1" />
             Back
           </Link>
-          <h1 className="text-3xl font-bold text-primary">Edit Product</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary">Edit Product</h1>
         </div>
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           Product not found
@@ -156,6 +176,14 @@ export default function EditProductPage() {
         error={error}
         initialData={initialFormData}
         submitButtonText="Update Product"
+      />
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+        duration={toast.type === 'success' ? 3000 : 5000}
       />
     </div>
   );

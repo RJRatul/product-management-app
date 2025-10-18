@@ -2,23 +2,36 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { productSchema, ProductFormData } from '@/lib/validations'
+import { ProductFormData } from '@/lib/validations'
 import { apiService } from '@/lib/api'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import ProductForm from '@/components/ProductForm'
+import Toast, { ToastType } from '@/components/Toast'
 
 export default function CreateProductPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
+    message: '',
+    type: 'success',
+    isVisible: false,
+  })
   const router = useRouter()
+
+  const showToast = (message: string, type: ToastType = 'success') => {
+    setToast({ message, type, isVisible: true })
+  }
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }))
+  }
 
   const handleSubmit = async (data: ProductFormData) => {
     setLoading(true)
     setError('')
 
     try {
-      // Remove empty strings but keep all valid URLs (including uploaded ones)
       const validImages = data.images.filter(img => img.trim() !== '')
 
       if (validImages.length === 0) {
@@ -34,9 +47,17 @@ export default function CreateProductPage() {
       }
 
       await apiService.createProduct(productData)
-      router.push('/dashboard/products')
+      
+      showToast('Product created successfully!', 'success')
+      
+      setTimeout(() => {
+        router.push('/dashboard/products')
+      }, 1500)
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create product. Please try again.')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create product. Please try again.'
+      setError(errorMessage)
+      showToast(errorMessage, 'error')
     } finally {
       setLoading(false)
     }
@@ -60,6 +81,14 @@ export default function CreateProductPage() {
         loading={loading}
         error={error}
         submitButtonText="Create Product"
+      />
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+        duration={toast.type === 'success' ? 3000 : 5000}
       />
     </div>
   )

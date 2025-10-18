@@ -1,6 +1,6 @@
 // Simple image upload to ImgBB
 export const uploadImageToImgBB = async (file: File): Promise<string> => {
-  const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+  const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY || '08d461f92a9ef00b0cab21077b253693';
   
   if (!IMGBB_API_KEY) {
     throw new Error('Image upload service is not configured. Please contact administrator.');

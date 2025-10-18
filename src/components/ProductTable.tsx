@@ -254,7 +254,7 @@ export default function ProductTable({
                         View
                       </Link>
                       <Link
-                        href={`/dashboard/edit-product/${product.id}`}
+                        href={`/dashboard/edit-product/${product.slug}`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                         onClick={() => setMobileMenuOpen(null)}
                       >

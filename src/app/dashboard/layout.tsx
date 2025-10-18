@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import Navbar from "@/components/Navbar"
 import Link from "next/link"
-import { Package, Plus, Tag, Menu, ChevronLeft } from "lucide-react"
+import { Package, Plus, Tag, Menu, ChevronLeft, ChevronRight } from "lucide-react"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
@@ -55,22 +55,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex flex-col bg-secondary">
-      {/* Top Navbar */}
       <Navbar />
 
-      {/* Mobile Header */}
       <div className="md:hidden bg-white shadow-sm border-b p-4 flex items-center justify-between">
         <button
           onClick={() => setIsSidebarOpen(true)}
           className="cursor-pointer p-2 rounded-lg bg-primary text-white hover:bg-accent1 transition-colors"
         >
-          <Menu className="h-5 w-5" />
+          <ChevronRight className="h-5 w-5" />
         </button>
         <span className="font-semibold text-primary">Dashboard</span>
       </div>
 
       <div className="flex flex-1 relative">
-        {/* Sidebar */}
         <aside
           className={`
             fixed md:static inset-y-0 left-0 bg-primary text-white transform
@@ -79,7 +76,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
           `}
         >
-          {/* Sidebar Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold">Dashboard</h2>
             <button
@@ -90,7 +86,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
           </div>
 
-          {/* Navigation Links */}
           <nav className="space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon

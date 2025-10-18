@@ -52,7 +52,7 @@ export default function CreateProductPage() {
           <ArrowLeft className="h-5 w-5 mr-1" />
           Back
         </Link>
-        <h1 className="text-3xl font-bold text-primary">Create Product</h1>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary">Create Product</h1>
       </div>
 
       <ProductForm

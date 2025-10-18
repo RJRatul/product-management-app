@@ -373,7 +373,7 @@ export default function Home() {
               Join thousands of businesses that trust our platform to manage their product catalogs efficiently.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+            <div className="flex flex-col sm:flex-row gap-10 justify-center items-center mb-8">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   href="#"
